@@ -1,87 +1,15 @@
-const projects=[
-{id:"01",title:"Lifehub",category:"web",label:"Personal OS",desc:"Un espace de vie numérique qui rassemble tâches, notes, calendrier, budget, objectifs et journal dans une seule expérience.",stack:["React","TypeScript","Vite","Zustand"],visual:"lines",repo:"Lifehub"},
-{id:"02",title:"Chess-Goat",category:"game",label:"Game / Web",desc:"Une expérience d'échecs pensée comme un terrain de jeu : rapide, lisible et faite pour donner envie de rejouer.",stack:["TypeScript","Game logic","UI"],visual:"chess",repo:"Chess-Goat"},
-{id:"03",title:"Darkmusic",category:"web",label:"Music interface",desc:"Une interface musicale sombre et immersive, conçue autour du rythme, de la navigation et du plaisir d'écoute.",stack:["Web","Audio","UI"],visual:"music",repo:"Darkmusic"},
-{id:"04",title:"Space Shooter",category:"game",label:"Arcade",desc:"Un shooter spatial nerveux : boucle de gameplay courte, feedback immédiat et esthétique rétro-futuriste.",stack:["JavaScript","Canvas","Game"],visual:"space",repo:"space-shooter"},
-{id:"05",title:"RH Docs Generator",category:"tool",label:"Automation",desc:"Un générateur de documents RH qui transforme des données structurées en documents propres et répétables.",stack:["Python","Automation","Docs"],visual:"doc",repo:"rh-docs-generator"},
-{id:"06",title:"Himalaya Momo",category:"web",label:"Website",desc:"Un univers web chaleureux pour un projet culinaire, avec une identité plus proche d'un lieu que d'un simple site vitrine.",stack:["Web","Design","Content"],visual:"pixels",repo:"himalaya-momo-website"},
-{id:"07",title:"Minecraft",category:"game",label:"Experiment",desc:"Une plongée dans l'écosystème Minecraft : modding, expérimentation et construction de systèmes.",stack:["Java","Minecraft","Mods"],visual:"space",repo:"minecraft"},
-{id:"08",title:"Suisse / Tibet",category:"web",label:"Culture & memory",desc:"Des expériences éditoriales autour de la mémoire, de la culture et des récits qui méritent de rester accessibles.",stack:["Web","Editorial","Story"],visual:"pixels",repo:"Suisse"},
-{id:"09",title:"ListenTogether",category:"tool",label:"Realtime",desc:"Une expérience de synchronisation musicale pensée pour écouter ensemble, avec une attention particulière aux données et à la confidentialité.",stack:["Web","Realtime","Supabase"],visual:"music",repo:"darkmatraque.github.io"}
-];
-
-const grid=document.querySelector("#projectGrid"),dialog=document.querySelector("#projectDialog"),commandDialog=document.querySelector("#commandDialog"),commandInput=document.querySelector("#commandInput");
-let activeFilter="all";
-
-function visual(type){
- if(type==="lines")return '<div class="project-visual visual-lines"><div class="visual-lines"></div><div class="visual-sphere"></div></div>';
- if(type==="chess")return '<div class="project-visual visual-chess"><div class="visual-chess"></div></div>';
- if(type==="music")return '<div class="project-visual visual-music"><div class="visual-music"></div></div>';
- if(type==="space")return '<div class="project-visual visual-space"><div class="visual-space"></div></div>';
- if(type==="doc")return '<div class="project-visual visual-doc"><div class="visual-doc"></div></div>';
- return '<div class="project-visual visual-pixels"><div class="visual-pixels"></div></div>';
-}
-function render(){
- const visible=projects.filter(function(p){return activeFilter==="all"||p.category===activeFilter});
- grid.innerHTML=visible.map(function(p){return '<article class="project" data-id="'+p.id+'" tabindex="0" aria-label="Ouvrir '+p.title+'"><span class="project-index">'+p.id+' / '+String(projects.length).padStart(2,"0")+'</span>'+visual(p.visual)+'<span class="project-category">'+p.label+'</span><h3>'+p.title+'</h3><p>'+p.desc+'</p><span class="project-arrow">↗</span></article>'}).join("");
- grid.querySelectorAll(".project").forEach(function(el){
-  el.addEventListener("click",function(){openProject(el.dataset.id)});
-  el.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" ")openProject(el.dataset.id)});
- });
-}
-function openProject(id){
- const p=projects.find(function(x){return x.id===id});if(!p)return;
- document.querySelector("#dialogCategory").textContent=p.label;
- document.querySelector("#dialogNumber").textContent=p.id+" / "+projects.length;
- document.querySelector("#dialogTitle").textContent=p.title;
- document.querySelector("#dialogDescription").textContent=p.desc;
- document.querySelector("#dialogMeta").innerHTML=p.stack.map(function(s){return "<span>"+s+"</span>"}).join("");
- document.querySelector("#dialogLink").href="https://github.com/Darkmatraque/"+p.repo;
- dialog.showModal();
-}
-document.querySelectorAll(".filter").forEach(function(btn){btn.addEventListener("click",function(){
- document.querySelectorAll(".filter").forEach(function(b){b.classList.remove("active")});
- btn.classList.add("active");activeFilter=btn.dataset.filter;render();
-})});
-document.querySelector("#closeDialog").onclick=function(){dialog.close()};
-dialog.addEventListener("click",function(e){if(e.target===dialog)dialog.close()});
-function randomProject(){openProject(projects[Math.floor(Math.random()*projects.length)].id)}
-document.querySelector("#randomBtn").onclick=randomProject;
-document.querySelector("#commandBtn").onclick=function(){commandDialog.showModal();setTimeout(function(){commandInput.focus()},50)};
-commandDialog.addEventListener("click",function(e){if(e.target===commandDialog)commandDialog.close()});
-document.querySelectorAll("[data-command]").forEach(function(btn){btn.addEventListener("click",function(){runCommand(btn.dataset.command)})});
-function runCommand(cmd){
- commandDialog.close();
- if(cmd==="work")document.querySelector("#work").scrollIntoView({behavior:"smooth"});
- if(cmd==="random")randomProject();
- if(cmd==="contact")document.querySelector("#contact").scrollIntoView({behavior:"smooth"});
- if(cmd==="top")window.scrollTo({top:0,behavior:"smooth"});
-}
-commandInput.addEventListener("input",function(){
- const q=commandInput.value.toLowerCase();
- document.querySelectorAll(".command-list button").forEach(function(b){b.hidden=!b.textContent.toLowerCase().includes(q)});
-});
-document.addEventListener("keydown",function(e){
- if(e.key==="Escape"){dialog.close();commandDialog.close()}
- if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();commandDialog.showModal();commandInput.focus()}
-});
-let keyBuffer="";
-document.addEventListener("keydown",function(e){
- if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;
- keyBuffer=(keyBuffer+e.key.toLowerCase()).slice(-2);
- if(keyBuffer==="rw"||e.key.toLowerCase()==="r")randomProject();
- if(keyBuffer==="gc")document.querySelector("#contact").scrollIntoView({behavior:"smooth"});
- if(keyBuffer==="gw")document.querySelector("#work").scrollIntoView({behavior:"smooth"});
- if(keyBuffer==="gt")window.scrollTo({top:0,behavior:"smooth"});
-});
-const cursor=document.querySelector(".cursor"),dot=document.querySelector(".cursor-dot");
-window.addEventListener("pointermove",function(e){cursor.style.left=e.clientX+"px";cursor.style.top=e.clientY+"px";dot.style.left=e.clientX+"px";dot.style.top=e.clientY+"px"});
-function cursorTargets(){document.querySelectorAll("a,button,.project").forEach(function(el){
- el.addEventListener("mouseenter",function(){cursor.style.width="54px";cursor.style.height="54px"});
- el.addEventListener("mouseleave",function(){cursor.style.width="34px";cursor.style.height="34px"});
-})}
-const signals=["BUILDING SOMETHING UNNECESSARILY GOOD","TURNING IDEAS INTO INTERFACES","BREAKING THE THING TO UNDERSTAND IT","POLISHING THE LAST 5%","SHIPPING, THEN LEARNING"];
-let si=0;
-setInterval(function(){si=(si+1)%signals.length;const el=document.querySelector("#signalText");el.animate([{opacity:1},{opacity:0},{opacity:1}],{duration:500});setTimeout(function(){el.textContent=signals[si]},220)},5000);
-function clock(){document.querySelector("#localTime").textContent=new Intl.DateTimeFormat("fr-CH",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:"Europe/Zurich"}).format(new Date())}
-setInterval(clock,1000);clock();document.querySelector("#year").textContent=new Date().getFullYear();render();cursorTargets();
+const P=[{id:'a',n:'Aurelian Drift',t:'TERRAIN',r:'NORTH / 71°',d:'Un archipel qui change de longitude à marée basse.'},{id:'b',n:'Noctis Vale',t:'CITY',r:'WEST / 18°',d:'Une ville sans rues : elle se traverse par ses souvenirs.'},{id:'c',n:'Velarium Shelf',t:'SEA',r:'SOUTH / 03°',d:'Une mer verticale où les couchers de soleil descendent vers le sol.'},{id:'d',n:'Morrow Garden',t:'GARDEN',r:'EAST / 44°',d:'Des plantes qui poussent uniquement lorsqu’on les nomme.'},{id:'e',n:'Palimpsest Station',t:'STATION',r:'NORTH / 12°',d:'Une gare dont les horaires sont écrits par les voyageurs.'},{id:'f',n:'The Quiet Ossuary',t:'VAULT',r:'CENTER / 00°',d:'Des chambres silencieuses où les objets oubliés continuent de vibrer.'}];
+const S=[['04:17','Vent nul sur Aurelian Drift','Le capteur côtier a cessé de recevoir des vagues pendant 91 secondes.'],['05:02','Noctis a changé de plan','La carte interne a perdu trois rues et en a gagné une.'],['06:41','Floraison à Morrow','Une espèce non cataloguée répond à une voix enregistrée hier.'],['08:26','Transit de Palimpsest','Le quai 6 annonce une destination inconnue des archives.'],['09:13','Lumière descendante','Velarium affiche un coucher de soleil 11 minutes en avance.']];
+let fav=JSON.parse(localStorage.getItem('orbis-fav')||'[]'),filter='all',query='';const app=document.getElementById('app'),detail=document.getElementById('detail'),commands=document.getElementById('commands');
+const save=()=>localStorage.setItem('orbis-fav',JSON.stringify(fav));const isFav=id=>fav.indexOf(id)>-1;
+function route(){let x=location.hash.slice(1)||'/';if(x==='/')home();else if(x==='/atlas')atlas();else if(x==='/signals')signals();else if(x==='/studio')studio();else if(x==='/about')about();else bad();bind();window.scrollTo(0,0)}
+function home(){app.innerHTML='<div class="page"><section class="hero"><div><small>FIELD NOTE 00 / ORBIS</small><h1>Cartographier ce qui <span class="serif">n’existe pas.</span></h1><p class="lead">ORBIS est un atlas spéculatif : six lieux, des signaux en mouvement, et assez de détails pour donner envie de vérifier une carte qui n’a jamais existé.</p><div class="actions"><a class="btn dark" href="#/atlas">Ouvrir l’atlas ↗</a><a class="btn" href="#/signals">Lire les signaux</a></div></div><div class="planet-wrap"><div class="planet"></div><div class="coords">47.048 / 6.632<br>NO MAP / NO NORTH</div></div></section><section class="section section-grid"><div><small>UNE AUTRE MANIÈRE DE NAVIGUER</small><h2>Une destination est une <span class="serif">hypothèse.</span></h2></div><div><p class="copy">Une carte ne sert pas seulement à retrouver un point. Elle sert à imaginer une relation entre un lieu, une histoire et les traces qu’il laisse.</p><div class="stat-grid"><div class="stat"><strong>06</strong><span>territoires actifs</span></div><div class="stat"><strong>17</strong><span>signaux suivis</span></div><div class="stat"><strong>∞</strong><span>interprétations</span></div></div></div></section><section class="section"><small>APERÇU</small><h2>Trois portes, <span class="serif">une seule</span> carte.</h2><div class="studio-grid"><article class="studio"><small>01 / ATLAS</small><h3>Explorer</h3><p>Recherche, filtres, fiches détaillées et favoris persistants.</p><a class="btn" href="#/atlas">Entrer ↗</a></article><article class="studio"><small>02 / SIGNAUX</small><h3>Observer</h3><p>Une lecture temporelle des anomalies qui traversent l’univers.</p><a class="btn" href="#/signals">Observer ↗</a></article><article class="studio"><small>03 / STUDIO</small><h3>Comprendre</h3><p>La logique d’interface, les raccourcis et les systèmes derrière ORBIS.</p><a class="btn" href="#/studio">Voir ↗</a></article></div></section></div>'}
+function card(p){return '<article class="card" data-open="'+p.id+'"><button class="star" data-fav="'+p.id+'">'+(isFav(p.id)?'★':'☆')+'</button><div><div class="meta"><span>'+p.t+'</span><span>'+p.r+'</span></div><div class="visual"></div><h3>'+p.n+'</h3><p>'+p.d+'</p></div><div class="meta"><span>ARCHIVE</span><span>↗ OUVRIR</span></div></article>'}
+function atlas(){let list=P.filter(p=>(filter==='all'||p.t===filter)&&(p.n+' '+p.d).toLowerCase().indexOf(query.toLowerCase())>-1);let types=['all','TERRAIN','CITY','SEA','GARDEN','STATION','VAULT'];app.innerHTML='<div class="page"><section class="section"><div class="atlas-head"><div><small>ATLAS / '+list.length+' RÉSULTATS</small><h1>Chaque lieu cache une <span class="serif">logique.</span></h1></div><input id="q" class="search" value="'+query+'" placeholder="chercher un lieu…"></div><div class="filters">'+types.map(t=>'<button class="pill '+(filter===t?'active':'')+'" data-filter="'+t+'">'+(t==='all'?'TOUT':t)+'</button>').join('')+'</div><div class="grid" style="margin-top:22px">'+list.map(card).join('')+'</div></section></div>'}
+function signals(){app.innerHTML='<div class="page"><section class="section"><small>LIVE FEED / 5 OBSERVATIONS</small><h1>Le monde n’est jamais <span class="serif">immobile.</span></h1><div class="timeline" style="margin-top:55px">'+S.map(s=>'<article class="signal"><span>'+s[0]+'</span><h3>'+s[1]+'</h3><p>'+s[2]+'</p></article>').join('')+'</div><div class="map"><div class="route"></div><i class="pin p1"></i><i class="pin p2"></i><i class="pin p3"></i><i class="pin p4"></i></div></section></div>'}
+function studio(){app.innerHTML='<div class="page"><section class="section"><small>STUDIO / NOTES DE SYSTÈME</small><h1>Une interface conçue comme un <span class="serif">instrument.</span></h1><p class="copy" style="margin-top:30px">Les filtres servent la curiosité. Les favoris construisent une mémoire locale. La palette accélère la navigation. Les signaux donnent une seconde lecture au même univers.</p></section><section class="section"><div class="studio-grid"><article class="studio"><small>ÉTAT</small><h3>Exploration</h3><div class="list"><div><span>Atlas index</span><strong>100%</strong></div><div><span>Signal stream</span><strong>LIVE</strong></div><div><span>Local memory</span><strong>'+fav.length+' favoris</strong></div></div></article><article class="studio"><small>RACCOURCIS</small><h3>Vitesse douce</h3><div class="list"><div><span>G puis A</span><strong>Atlas</strong></div><div><span>G puis S</span><strong>Signaux</strong></div><div><span>R</span><strong>Aléatoire</strong></div><div><span>⌘ K</span><strong>Command deck</strong></div></div></article></div></section></div>'}
+function about(){app.innerHTML='<div class="page"><section class="section"><small>ORBIT / META</small><h1>Un endroit pour tester la question <span class="serif">« et si ? »</span></h1><p class="copy" style="margin-top:30px">ORBIS fonctionne comme une expérience statique autonome. La mémoire utile reste dans le navigateur.</p><a class="btn dark" style="margin-top:25px" href="#/">Retour à l’atlas</a></section></div>'}function bad(){app.innerHTML='<div class="page"><section class="section"><small>404 / HORS CARTE</small><h1 style="font-size:18vw;line-height:.8;margin:20px 0">404</h1><p class="copy">Cette destination n’est pas répertoriée.</p><a class="btn dark" href="#/">Revenir à ORBIS</a></section></div>'}
+function openDetail(id){let p=P.find(v=>v.id===id);if(!p)return;document.getElementById('dk').textContent=p.t+' / '+p.r;document.getElementById('dt').textContent=p.n;document.getElementById('dd').textContent=p.d;document.getElementById('facts').innerHTML='<div class="fact"><span>Statut</span><strong>ACTIF</strong></div><div class="fact"><span>Dernier relevé</span><strong>+'+(id.charCodeAt(0)*7)%51+' min</strong></div><div class="fact"><span>Accès</span><strong>OBSERVATION</strong></div>';document.getElementById('fav').textContent=isFav(id)?'Retirer des favoris':'Ajouter aux favoris';document.getElementById('fav').onclick=function(){fav=isFav(id)?fav.filter(x=>x!==id):fav.concat(id);save();openDetail(id)};detail.showModal()}
+function openCommands(){commands.showModal();let s=document.getElementById('search');s.value='';showResults('');s.focus()}function showResults(q){let a=P.filter(p=>p.n.toLowerCase().indexOf(q.toLowerCase())>-1);document.getElementById('results').innerHTML='<button class="result" data-go="/">Accueil</button>'+a.map(p=>'<button class="result" data-go="'+p.id+'">'+p.n+' <small>'+p.t+'</small></button>').join('');document.querySelectorAll('[data-go]').forEach(b=>b.onclick=function(){commands.close();b.dataset.go==='/'?location.hash='':openDetail(b.dataset.go)})}
+function bind(){document.querySelectorAll('[data-open]').forEach(e=>e.onclick=function(x){if(!x.target.closest('[data-fav]'))openDetail(e.dataset.open)});document.querySelectorAll('[data-fav]').forEach(b=>b.onclick=function(x){x.stopPropagation();fav=isFav(b.dataset.fav)?fav.filter(v=>v!==b.dataset.fav):fav.concat(b.dataset.fav);save();route()});document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=function(){filter=b.dataset.filter;route()});let q=document.getElementById('q');if(q)q.oninput=function(){query=q.value;atlas();bind()}}
+document.getElementById('cmd').onclick=openCommands;document.getElementById('search').oninput=function(e){showResults(e.target.value)};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=function(){b.closest('dialog').close()});document.addEventListener('keydown',function(e){if(e.metaKey&&e.key.toLowerCase()==='k'){e.preventDefault();openCommands()}if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();openCommands()}if(e.key.toLowerCase()==='r'&&document.activeElement.tagName!=='INPUT')openDetail(P[Math.floor(Math.random()*P.length)].id)});setInterval(function(){let n=document.getElementById('status');if(n){let a=['SIGNAL NOMINAL','DRIFT +0.4°','LOW TIDE / 06:12','ARCHIVE PING 17'];n.textContent=a[Math.floor(Date.now()/3000)%a.length]}},1000);window.addEventListener('hashchange',route);route();
